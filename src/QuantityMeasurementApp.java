@@ -32,9 +32,9 @@ public class QuantityMeasurementApp {
             return unit.toBase(value);
         }
 
-        Quantity add(Quantity other) {
+        Quantity add(Quantity other, Unit target) {
             double sum = this.toBase() + other.toBase();
-            return new Quantity(unit.fromBase(sum), this.unit);
+            return new Quantity(target.fromBase(sum), target);
         }
     }
 
@@ -42,6 +42,6 @@ public class QuantityMeasurementApp {
         Quantity q1 = new Quantity(1, Unit.FEET);
         Quantity q2 = new Quantity(12, Unit.INCH);
 
-        System.out.println("UC6 sum: " + q1.add(q2).value);
+        System.out.println("UC7: " + q1.add(q2, Unit.FEET).value);
     }
 }
