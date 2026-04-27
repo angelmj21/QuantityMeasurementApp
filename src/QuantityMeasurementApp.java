@@ -4,18 +4,18 @@ public class QuantityMeasurementApp {
         FEET(12.0),
         INCH(1.0);
 
-        private final double factor;
+        double factor;
 
         Unit(double factor) {
             this.factor = factor;
         }
 
-        double toBase(double value) {
-            return value * factor;
+        double toBase(double v) {
+            return v * factor;
         }
 
-        double fromBase(double base) {
-            return base / factor;
+        double fromBase(double v) {
+            return v / factor;
         }
     }
 
@@ -28,17 +28,20 @@ public class QuantityMeasurementApp {
             this.unit = unit;
         }
 
-        double convertTo(Unit target) {
-            double base = unit.toBase(value);
-            return target.fromBase(base);
+        double toBase() {
+            return unit.toBase(value);
+        }
+
+        Quantity add(Quantity other) {
+            double sum = this.toBase() + other.toBase();
+            return new Quantity(unit.fromBase(sum), this.unit);
         }
     }
 
     public static void main(String[] args) {
+        Quantity q1 = new Quantity(1, Unit.FEET);
+        Quantity q2 = new Quantity(12, Unit.INCH);
 
-        Quantity q = new Quantity(1.0, Unit.FEET);
-
-        System.out.println("UC5 Conversion: " +
-                q.convertTo(Unit.INCH));
+        System.out.println("UC6 sum: " + q1.add(q2).value);
     }
 }
