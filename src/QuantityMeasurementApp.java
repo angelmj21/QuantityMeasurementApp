@@ -1,12 +1,13 @@
 public class QuantityMeasurementApp {
 
-    enum Unit {
-        FEET(12.0),
-        INCH(1.0);
+    enum WeightUnit {
+        KG(1.0),
+        GRAM(0.001),
+        POUND(0.453592);
 
         double factor;
 
-        Unit(double factor) {
+        WeightUnit(double factor) {
             this.factor = factor;
         }
 
@@ -19,11 +20,11 @@ public class QuantityMeasurementApp {
         }
     }
 
-    static class Quantity {
+    static class QuantityWeight {
         double value;
-        Unit unit;
+        WeightUnit unit;
 
-        Quantity(double value, Unit unit) {
+        QuantityWeight(double value, WeightUnit unit) {
             this.value = value;
             this.unit = unit;
         }
@@ -31,10 +32,22 @@ public class QuantityMeasurementApp {
         double toBase() {
             return unit.toBase(value);
         }
+
+        boolean equalsWeight(QuantityWeight other) {
+            return Math.abs(this.toBase() - other.toBase()) < 1e-6;
+        }
+
+        QuantityWeight add(QuantityWeight other, WeightUnit target) {
+            double sum = this.toBase() + other.toBase();
+            return new QuantityWeight(target.fromBase(sum), target);
+        }
     }
 
     public static void main(String[] args) {
-        Quantity q = new Quantity(1, Unit.FEET);
-        System.out.println("UC8 base: " + q.toBase());
+        QuantityWeight w1 = new QuantityWeight(1, WeightUnit.KG);
+        QuantityWeight w2 = new QuantityWeight(1000, WeightUnit.GRAM);
+
+        System.out.println("UC9 equal: " + w1.equalsWeight(w2));
+        System.out.println("UC9 add: " + w1.add(w2, WeightUnit.KG).value);
     }
 }
