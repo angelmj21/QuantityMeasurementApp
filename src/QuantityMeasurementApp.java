@@ -31,17 +31,10 @@ public class QuantityMeasurementApp {
         double toBase() {
             return unit.toBase(value);
         }
-
-        Quantity add(Quantity other, Unit target) {
-            double sum = this.toBase() + other.toBase();
-            return new Quantity(target.fromBase(sum), target);
-        }
     }
 
     public static void main(String[] args) {
-        Quantity q1 = new Quantity(1, Unit.FEET);
-        Quantity q2 = new Quantity(12, Unit.INCH);
-
-        System.out.println("UC7: " + q1.add(q2, Unit.FEET).value);
+        Quantity q = new Quantity(1, Unit.FEET);
+        System.out.println("UC8 base: " + q.toBase());
     }
 }
