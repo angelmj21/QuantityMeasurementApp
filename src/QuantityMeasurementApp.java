@@ -1,67 +1,50 @@
 public class QuantityMeasurementApp {
 
     interface IMeasurable {
-        double getConversionFactor();
         double convertToBaseUnit(double value);
         double convertFromBaseUnit(double baseValue);
-        String getUnitName();
     }
 
     enum WeightUnit implements IMeasurable {
-        KG(1.0), GRAM(0.001), POUND(0.453592);
-        private final double factor;
-        WeightUnit(double factor) { this.factor = factor; }
-        public double getConversionFactor() { return factor; }
-        public double convertToBaseUnit(double v) { return v * factor; }
-        public double convertFromBaseUnit(double v) { return v / factor; }
-        public String getUnitName() { return name(); }
-    }
-
-    enum VolumeUnit implements IMeasurable {
-        LITRE(1.0), MILLILITRE(0.001), GALLON(3.78541);
-        private final double factor;
-        VolumeUnit(double factor) { this.factor = factor; }
-        public double getConversionFactor() { return factor; }
-        public double convertToBaseUnit(double v) { return v * factor; }
-        public double convertFromBaseUnit(double v) { return v / factor; }
-        public String getUnitName() { return name(); }
+        KG(1.0), GRAM(0.001);
+        private final double f;
+        WeightUnit(double f) { this.f = f; }
+        public double convertToBaseUnit(double v) { return v * f; }
+        public double convertFromBaseUnit(double v) { return v / f; }
     }
 
     static class Quantity<U extends IMeasurable> {
-        private final double value;
-        private final U unit;
+        double value;
+        U unit;
 
-        public Quantity(double value, U unit) {
+        Quantity(double value, U unit) {
             this.value = value;
             this.unit = unit;
         }
 
-        public double toBase() {
+        double toBase() {
             return unit.convertToBaseUnit(value);
         }
 
-        public Quantity<U> convertTo(U target) {
-            return new Quantity<>(target.convertFromBaseUnit(toBase()), target);
+        Quantity<U> add(Quantity<U> o, U t) {
+            return new Quantity<>(t.convertFromBaseUnit(toBase() + o.toBase()), t);
         }
 
-        public Quantity<U> add(Quantity<U> other, U target) {
-            double sum = this.toBase() + other.toBase();
-            return new Quantity<>(target.convertFromBaseUnit(sum), target);
+        Quantity<U> subtract(Quantity<U> o, U t) {
+            return new Quantity<>(t.convertFromBaseUnit(toBase() - o.toBase()), t);
         }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (!(obj instanceof Quantity<?> q)) return false;
-            if (this.unit.getClass() != q.unit.getClass()) return false;
-            return Math.abs(this.toBase() - q.toBase()) < 1e-6;
+        double divide(Quantity<U> o) {
+            if (o.toBase() == 0) throw new ArithmeticException();
+            return toBase() / o.toBase();
         }
     }
 
     public static void main(String[] args) {
-        Quantity<VolumeUnit> v1 = new Quantity<>(1, VolumeUnit.LITRE);
-        Quantity<VolumeUnit> v2 = new Quantity<>(1000, VolumeUnit.MILLILITRE);
+        Quantity<WeightUnit> a = new Quantity<>(10, WeightUnit.KG);
+        Quantity<WeightUnit> b = new Quantity<>(5, WeightUnit.KG);
 
-        System.out.println(v1.equals(v2));
-        System.out.println(v1.convertTo(VolumeUnit.MILLILITRE).value);
+        System.out.println(a.subtract(b, WeightUnit.KG).value);
+        System.out.println(a.divide(b));
     }
 }
