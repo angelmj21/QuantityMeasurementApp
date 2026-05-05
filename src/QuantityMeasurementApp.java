@@ -1,53 +1,106 @@
 public class QuantityMeasurementApp {
 
-    enum WeightUnit {
+    // Step 1: Common Interface
+    interface IMeasurable {
+        double getConversionFactor();
+        double convertToBaseUnit(double value);
+        double convertFromBaseUnit(double baseValue);
+        String getUnitName();
+    }
+
+    // Step 2: Refactored WeightUnit
+    enum WeightUnit implements IMeasurable {
         KG(1.0),
         GRAM(0.001),
         POUND(0.453592);
 
-        double factor;
+        private final double factor;
 
         WeightUnit(double factor) {
             this.factor = factor;
         }
 
-        double toBase(double v) {
-            return v * factor;
+        public double getConversionFactor() {
+            return factor;
         }
 
-        double fromBase(double v) {
-            return v / factor;
+        public double convertToBaseUnit(double value) {
+            return value * factor;
+        }
+
+        public double convertFromBaseUnit(double baseValue) {
+            return baseValue / factor;
+        }
+
+        public String getUnitName() {
+            return name();
         }
     }
 
-    static class QuantityWeight {
-        double value;
-        WeightUnit unit;
+    // Step 4: Generic Quantity Class
+    static class Quantity<U extends IMeasurable> {
+        private final double value;
+        private final U unit;
 
-        QuantityWeight(double value, WeightUnit unit) {
+        public Quantity(double value, U unit) {
+            if (unit == null || Double.isNaN(value) || Double.isInfinite(value)) {
+                throw new IllegalArgumentException("Invalid quantity");
+            }
             this.value = value;
             this.unit = unit;
         }
 
-        double toBase() {
-            return unit.toBase(value);
+        public double toBase() {
+            return unit.convertToBaseUnit(value);
         }
 
-        boolean equalsWeight(QuantityWeight other) {
-            return Math.abs(this.toBase() - other.toBase()) < 1e-6;
+        public Quantity<U> convertTo(U targetUnit) {
+            double base = this.toBase();
+            double converted = targetUnit.convertFromBaseUnit(base);
+            return new Quantity<>(round(converted), targetUnit);
         }
 
-        QuantityWeight add(QuantityWeight other, WeightUnit target) {
+        public Quantity<U> add(Quantity<U> other) {
+            return add(other, this.unit);
+        }
+
+        public Quantity<U> add(Quantity<U> other, U targetUnit) {
             double sum = this.toBase() + other.toBase();
-            return new QuantityWeight(target.fromBase(sum), target);
+            return new Quantity<>(round(targetUnit.convertFromBaseUnit(sum)), targetUnit);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (!(obj instanceof Quantity<?> that)) return false;
+
+            if (this.unit.getClass() != that.unit.getClass()) return false;
+
+            return Double.compare(this.toBase(), that.toBase()) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Double.hashCode(toBase());
+        }
+
+        @Override
+        public String toString() {
+            return value + " " + unit.getUnitName();
+        }
+
+        private double round(double value) {
+            return Math.round(value * 100.0) / 100.0;
         }
     }
 
+    // Step 5: Simplified App
     public static void main(String[] args) {
-        QuantityWeight w1 = new QuantityWeight(1, WeightUnit.KG);
-        QuantityWeight w2 = new QuantityWeight(1000, WeightUnit.GRAM);
 
-        System.out.println("UC9 equal: " + w1.equalsWeight(w2));
-        System.out.println("UC9 add: " + w1.add(w2, WeightUnit.KG).value);
+        Quantity<WeightUnit> w1 = new Quantity<>(1, WeightUnit.KG);
+        Quantity<WeightUnit> w2 = new Quantity<>(1000, WeightUnit.GRAM);
+
+        System.out.println("UC10 equal: " + w1.equals(w2));
+        System.out.println("UC10 add: " + w1.add(w2, WeightUnit.KG));
     }
 }
