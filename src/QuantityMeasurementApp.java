@@ -26,17 +26,30 @@ public class QuantityMeasurementApp {
             return unit.convertToBaseUnit(value);
         }
 
+        private enum Op { ADD, SUB, DIV }
+
+        private double calc(Quantity<U> o, Op op) {
+            double a = toBase(), b = o.toBase();
+            return switch (op) {
+                case ADD -> a + b;
+                case SUB -> a - b;
+                case DIV -> {
+                    if (b == 0) throw new ArithmeticException();
+                    yield a / b;
+                }
+            };
+        }
+
         Quantity<U> add(Quantity<U> o, U t) {
-            return new Quantity<>(t.convertFromBaseUnit(toBase() + o.toBase()), t);
+            return new Quantity<>(t.convertFromBaseUnit(calc(o, Op.ADD)), t);
         }
 
         Quantity<U> subtract(Quantity<U> o, U t) {
-            return new Quantity<>(t.convertFromBaseUnit(toBase() - o.toBase()), t);
+            return new Quantity<>(t.convertFromBaseUnit(calc(o, Op.SUB)), t);
         }
 
         double divide(Quantity<U> o) {
-            if (o.toBase() == 0) throw new ArithmeticException();
-            return toBase() / o.toBase();
+            return calc(o, Op.DIV);
         }
     }
 
@@ -44,6 +57,7 @@ public class QuantityMeasurementApp {
         Quantity<WeightUnit> a = new Quantity<>(10, WeightUnit.KG);
         Quantity<WeightUnit> b = new Quantity<>(5, WeightUnit.KG);
 
+        System.out.println(a.add(b, WeightUnit.KG).value);
         System.out.println(a.subtract(b, WeightUnit.KG).value);
         System.out.println(a.divide(b));
     }
